@@ -1,0 +1,5 @@
+node_modules
+.envrc
+.idea
+.svelte-kit
+.DS_Store
