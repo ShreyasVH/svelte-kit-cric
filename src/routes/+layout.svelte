@@ -4,5 +4,7 @@
 
 <div>
     <AppBar />
-    <slot />
+    <div style="padding: 2%">
+        <slot />
+    </div>
 </div>

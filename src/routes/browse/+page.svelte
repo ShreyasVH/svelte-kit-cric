@@ -38,16 +38,20 @@
     const handleYearClick = async (year) => {
         window.location.href = '/browse?year=' + year;
     }
+
+    const handleTourClick = async (tourId) => {
+        window.location.href = '/tours/detail?id=' + tourId;
+    }
 </script>
 
-<LayoutGrid>
+<LayoutGrid style="padding: 0">
     <Cell span={9}>
-        <h2 style="text-align: center">
+        <h2 style="text-align: center; margin-top: 0">
             Tours for {selectedYear}:
         </h2>
 
         {#each tours as tour}
-            <Card style="margin-bottom: 1%">
+            <Card style="margin-bottom: 1%; cursor: pointer" on:click={() => handleTourClick(tour.id)}>
                 <Content>
                     <span>
                         {tour.name}
