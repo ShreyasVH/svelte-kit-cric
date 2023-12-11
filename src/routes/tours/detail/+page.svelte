@@ -1,8 +1,6 @@
 <script>
     import { onMount } from 'svelte';
     import { getTour } from '../../../endpoints/tours';
-    import LayoutGrid, { Cell } from '@smui/layout-grid';
-    import Button from '@smui/button';
     import Card, { Content } from '@smui/card';
     import { formatDateTimeString } from '../../../utils';
 
@@ -17,7 +15,7 @@
     });
 
     const handleSeriesClick = async (seriesId) => {
-        console.log(seriesId);
+        window.location.href = '/series/detail?id=' + seriesId;
     }
 </script>
 
@@ -27,7 +25,7 @@
     </h2>
 
     {#each tour.seriesList as series}
-        <Card style="margin-bottom: 1%" on:click={() => handleSeriesClick(series.id)}>
+        <Card style="margin-bottom: 1%; cursor:pointer;" on:click={() => handleSeriesClick(series.id)}>
             <Content>
             <span>
                 {series.gameType.name}
