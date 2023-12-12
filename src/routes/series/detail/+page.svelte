@@ -16,7 +16,7 @@
     });
 
     const handleMatchClick = async (matchId) => {
-        console.log(matchId);
+        window.location.href = '/matches/detail?id=' + matchId;
     }
 
     const getWinMargin = (winMargin, winMarginType) => {
