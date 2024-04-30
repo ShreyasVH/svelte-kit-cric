@@ -1,9 +1,11 @@
 <script>
     import { onMount } from 'svelte';
     import { getSeries } from '../../../endpoints/series';
+    import { removeMatch } from '../../../endpoints/matches';
     import LayoutGrid, { Cell } from '@smui/layout-grid';
     import Card, { Content } from '@smui/card';
-    import { formatDateTimeString } from '../../../utils';
+    import Button from '@smui/button';
+    import { formatDateTimeString, copyObject } from '../../../utils';
 
     export let data;
     let series = {};
@@ -17,6 +19,20 @@
 
     const handleMatchClick = async (matchId) => {
         window.location.href = '/matches/detail?id=' + matchId;
+    }
+
+    const handleDeleteMatchClick = async (matchId, event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const deleteResponse = await removeMatch(matchId);
+        if (deleteResponse.status === 200) {
+            const updatedSeries = copyObject(series);
+            updatedSeries.matches = series.matches.filter(m => m.id !== matchId);
+            series = updatedSeries;
+            // TODO: add success alert snackbar
+        } else {
+            // TODO: add failure alert snackbar
+        }
     }
 
     const getWinMargin = (winMargin, winMarginType) => {
@@ -77,6 +93,10 @@
                         <span style="display: block">
                             {renderWinner(match)}
                         </span>
+
+                        <Button style="background-color: #ef5350; color: white;" variant="raised" on:click={(event) => handleDeleteMatchClick(match.id, event)}>
+                            DELETE
+                        </Button>
                     </Cell>
 
                     <Cell span={4} style="text-align: center">
