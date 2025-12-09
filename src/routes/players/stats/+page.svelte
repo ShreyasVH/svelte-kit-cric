@@ -9,6 +9,7 @@ import { FILTER_TYPE } from '../../../constants';
 import { onMount } from 'svelte';
 import { getStats } from '../../../endpoints/players';
 import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
+import { showLoader, hideLoader } from '../../../utils';
 
 const getDefaultFilterOptions = () => ({
         type: {
@@ -80,10 +81,10 @@ let isFilterOpen = false;
 let stats = [];
 let totalCount = 0;
 let selectedFilters = {
-    type: 'fielding'
+    type: 'batting'
 };
 let selectedFiltersTemp = {
-    type: 'fielding'
+    type: 'batting'
 };
 let page = 1;
 let sortMap = {
@@ -92,18 +93,161 @@ let sortMap = {
 let filterOptions = getDefaultFilterOptions();
 let loaded = false;
 const limit = 10;
+let totalPages = 0;
+let pageRange = [];
+let sortKey = 'runs';
+let sortOrder = 'desc';
+let sortSymbol = '\u0020\u2193';
+
+const columns = {
+    batting: [
+         {
+             displayKey: 'Player ID',
+             key: 'id',
+             sortable: false
+         },
+         {
+              displayKey: 'Name',
+              key: 'name',
+              sortable: false
+         },
+         {
+              displayKey: 'Innings',
+              key: 'innings',
+              sortable: true
+         },
+         {
+             displayKey: 'Runs',
+             key: 'runs',
+             sortable: true
+         },
+         {
+              displayKey: 'Balls',
+              key: 'balls',
+              sortable: true
+         },
+         {
+              displayKey: 'Not Outs',
+              key: 'notOuts',
+              sortable: true
+         },
+         {
+              displayKey: 'Highest',
+              key: 'highest',
+              sortable: true
+         },
+         {
+              displayKey: '4s',
+              key: 'fours',
+              sortable: true
+         },
+         {
+              displayKey: '6s',
+              key: 'sixes',
+              sortable: true
+         },
+         {
+              displayKey: '50s',
+              key: 'fifties',
+              sortable: true
+         },
+         {
+              displayKey: '100s',
+              key: 'hundreds',
+              sortable: true
+         }
+    ],
+    bowling: [
+         {
+             displayKey: 'Player ID',
+             key: 'id',
+             sortable: false
+         },
+         {
+              displayKey: 'Name',
+              key: 'name',
+              sortable: false
+         },
+         {
+              displayKey: 'Innings',
+              key: 'innings',
+              sortable: true
+         },
+         {
+              displayKey: 'Wickets',
+              key: 'wickets',
+              sortable: true
+         },
+         {
+             displayKey: 'Runs',
+             key: 'runs',
+             sortable: true
+         },
+         {
+              displayKey: 'Balls',
+              key: 'balls',
+              sortable: true
+         },
+         {
+              displayKey: 'Maidens',
+              key: 'maidens',
+              sortable: true
+         },
+         {
+              displayKey: 'fifers',
+              key: 'fifers',
+              sortable: true
+         },
+         {
+              displayKey: 'Ten Wickets',
+              key: 'tenWickets',
+              sortable: true
+         }
+    ],
+    fielding: [
+         {
+             displayKey: 'Player ID',
+             key: 'id',
+             sortable: false
+         },
+         {
+              displayKey: 'Name',
+              key: 'name',
+              sortable: false
+         },
+         {
+            displayKey: 'Fielder Catches',
+            key: 'fielderCatches',
+            sortable: true
+         },
+         {
+              displayKey: 'Keeper Catches',
+              key: 'keeperCatches',
+              sortable: true
+         },
+         {
+              displayKey: 'Stumpings',
+              key: 'stumpings',
+              sortable: true
+         },
+         {
+              displayKey: 'Run Outs',
+              key: 'runOuts',
+              sortable: true
+         }
+    ]
+};
 
 const handleFilterOpen = () => {
-    console.log('opening filters');
     isFilterOpen = true;
 };
 
 const handleFilterClose = () => {
-    console.log('closing filters');
     isFilterOpen = false;
 };
 
 const updateData = (selectedPage, selectedSortMap) => {
+    showLoader();
     const payload = {
         type: 'batting',
         filters: {},
@@ -165,11 +309,12 @@ const updateData = (selectedPage, selectedSortMap) => {
     getStats(payload).then(statsResponse => {
         stats = statsResponse.data.data.stats;
         totalCount = statsResponse.data.data.count;
-        loaded = true;
         selectedFilters = selectedFiltersTemp;
         handleFilterClose();
         page = selectedPage;
         sortMap = selectedSortMap;
+        loaded = true;
+        hideLoader();
     });
 };
 
@@ -182,6 +327,48 @@ onMount(() => {
     }).catch(error => console.log(error))
 });
 
+const goToPage = selectedPage => {
+    updateData(selectedPage, sortMap);
+};
+
+const isSortActive = (key) => {
+  return sortMap.hasOwnProperty(key);
+};
+
+const getSortSymbol = (key) => {
+  return (sortMap[key] === 'asc') ? '\u0020\u2191' : '\u0020\u2193';
+};
+
+const handleSort = (key, type) => {
+    const columnConfig = columns[type].filter(column => key === column.key);
+    if (columnConfig.length === 1 && columnConfig[0].sortable) {
+        const order = ((sortMap.hasOwnProperty(key) && sortMap[key] === 'desc') ? 'asc' : 'desc');
+        updateData(1, {
+            [key]: order
+        });
+    }
+};
+
+$: totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : 0;
+
+// recompute whenever page or totalPages changes
+$: {
+  const start = Math.max(1, page - 2);
+  const end = Math.min(totalPages, page + 2);
+
+  const range = [];
+  for (let i = start; i <= end; i++) {
+    range.push(i);
+  }
+  pageRange = range;
+}
+
+$: {
+    sortKey = Object.keys(sortMap)[0];
+    sortOrder = sortMap[sortKey];
+    sortSymbol = ((sortOrder === 'asc') ? '\u0020\u2191' : '\u0020\u2193');
+}
+
 </script>
 
 <div>
@@ -190,78 +377,27 @@ onMount(() => {
             <DataTable style="width: 100%">
                 <Head>
                     <Row>
-                        <Cell head>
-                            Player ID
-                        </Cell>
-                        <Cell head>
-                            Name
-                        </Cell>
-                        <Cell head>
-                            Innings
-                        </Cell>
-                        <Cell head>
-                            Runs
-                        </Cell>
-                        <Cell head>
-                            Balls
-                        </Cell>
-                        <Cell head>
-                            Not Outs
-                        </Cell>
-                        <Cell head>
-                            Highest
-                        </Cell>
-                        <Cell head>
-                            4s
-                        </Cell>
-                        <Cell head>
-                            6s
-                        </Cell>
-                        <Cell head>
-                            50s
-                        </Cell>
-                        <Cell head>
-                            100s
-                        </Cell>
+                        {#each columns.batting as column}
+                            <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, 'batting')}>
+                                {column.displayKey}
+                                {#if sortKey === column.key}
+                                    <span>
+                                        {sortSymbol}
+                                    </span>
+                                {/if}
+                            </Cell>
+                        {/each}
                     </Row>
                 </Head>
 
                 <Body>
                     {#each stats as stat}
                         <Row>
-                            <Cell>
-                                {stat.id}
-                            </Cell>
-                            <Cell>
-                                {stat.name}
-                            </Cell>
-                            <Cell>
-                                {stat.innings}
-                            </Cell>
-                            <Cell>
-                                {stat.runs}
-                            </Cell>
-                            <Cell>
-                                {stat.balls}
-                            </Cell>
-                            <Cell>
-                                {stat.notOuts}
-                            </Cell>
-                            <Cell>
-                                {stat.highest}
-                            </Cell>
-                            <Cell>
-                                {stat.fours}
-                            </Cell>
-                            <Cell>
-                                {stat.sixes}
-                            </Cell>
-                            <Cell>
-                                {stat.fifties}
-                            </Cell>
-                            <Cell>
-                                {stat.hundreds}
-                            </Cell>
+                            {#each columns.batting as column}
+                                <Cell>
+                                    {stat[column.key]}
+                                </Cell>
+                            {/each}
                         </Row>
                     {/each}
                 </Body>
@@ -272,66 +408,27 @@ onMount(() => {
             <DataTable style="width: 100%">
                 <Head>
                     <Row>
-                        <Cell head>
-                            Player ID
-                        </Cell>
-                        <Cell head>
-                            Name
-                        </Cell>
-                        <Cell head>
-                            Innings
-                        </Cell>
-                        <Cell head>
-                            Wickets
-                        </Cell>
-                        <Cell head>
-                            Runs
-                        </Cell>
-                        <Cell head>
-                            Balls
-                        </Cell>
-                        <Cell head>
-                            Maidens
-                        </Cell>
-                        <Cell head>
-                            Fifers
-                        </Cell>
-                        <Cell head>
-                            Ten Wickets
-                        </Cell>
+                        {#each columns.bowling as column}
+                            <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, 'bowling')}>
+                                {column.displayKey}
+                                {#if sortKey === column.key}
+                                    <span>
+                                        {sortSymbol}
+                                    </span>
+                                {/if}
+                            </Cell>
+                        {/each}
                     </Row>
                 </Head>
 
                 <Body>
                     {#each stats as stat}
                         <Row>
-                            <Cell>
-                                {stat.id}
-                            </Cell>
-                            <Cell>
-                                {stat.name}
-                            </Cell>
-                            <Cell>
-                                {stat.innings}
-                            </Cell>
-                            <Cell>
-                                {stat.wickets}
-                            </Cell>
-                            <Cell>
-                                {stat.runs}
-                            </Cell>
-                            <Cell>
-                                {stat.balls}
-                            </Cell>
-                            <Cell>
-                                {stat.maidens}
-                            </Cell>
-                            <Cell>
-                                {stat.fifers}
-                            </Cell>
-                            <Cell>
-                                {stat.tenWickets}
-                            </Cell>
+                            {#each columns.bowling as column}
+                                <Cell>
+                                    {stat[column.key]}
+                                </Cell>
+                            {/each}
                         </Row>
                     {/each}
                 </Body>
@@ -342,53 +439,64 @@ onMount(() => {
             <DataTable style="width: 100%">
                 <Head>
                     <Row>
-                        <Cell head>
-                            Player ID
-                        </Cell>
-                        <Cell head>
-                            Name
-                        </Cell>
-                        <Cell head>
-                            Fielder Catches
-                        </Cell>
-                        <Cell head>
-                            Keeper Catches
-                        </Cell>
-                        <Cell head>
-                            Stumpings
-                        </Cell>
-                        <Cell head>
-                            Run Outs
-                        </Cell>
+                        {#each columns.fielding as column}
+                            <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, 'fielding')}>
+                                {column.displayKey}
+                                {#if sortKey === column.key}
+                                    <span>
+                                        {sortSymbol}
+                                    </span>
+                                {/if}
+                            </Cell>
+                        {/each}
                     </Row>
                 </Head>
 
                 <Body>
                     {#each stats as stat}
                         <Row>
-                            <Cell>
-                                {stat.id}
-                            </Cell>
-                            <Cell>
-                                {stat.name}
-                            </Cell>
-                            <Cell>
-                                {stat.fielderCatches}
-                            </Cell>
-                            <Cell>
-                                {stat.keeperCatches}
-                            </Cell>
-                            <Cell>
-                                {stat.stumpings}
-                            </Cell>
-                            <Cell>
-                                {stat.runOuts}
-                            </Cell>
+                            {#each columns.fielding as column}
+                                <Cell>
+                                    {stat[column.key]}
+                                </Cell>
+                            {/each}
                         </Row>
                     {/each}
                 </Body>
             </DataTable>
         {/if}
+
+        <div class="pagination-box">
+            {#if page > 2}
+                <div class="pagination-button" on:click={() => goToPage(1)}>
+                    {'<<'}
+                </div>
+            {/if}
+
+            {#if page > 1}
+                <div class="pagination-button" on:click={() => goToPage(page - 1)}>
+                    {'<'}
+                </div>
+            {/if}
+
+            {#each pageRange as i }
+                <div class={`${true ? "pagination-button" : ""} ${page === i ? "active" : ""}`} on:click={() => goToPage(i)}>
+                    {i}
+                </div>
+            {/each}
+
+            {#if page < totalPages - 1}
+                <div class="pagination-button" on:click={() => goToPage(page + 1)}>
+                    {'>'}
+                </div>
+            {/if}
+
+            {#if page < totalPages - 2}
+                <div class="pagination-button" on:click={() => goToPage(totalPages)}>
+                    {'>>'}
+                </div>
+            {/if}
+        </div>
 
         <Filters
             open={isFilterOpen}
@@ -399,5 +507,36 @@ onMount(() => {
 </div>
 
 <style>
+:global(.sortable) {
+    cursor: pointer;
+}
 
+.pagination-box {
+    text-align: center;
+    margin-top: 2%;
+}
+
+.pagination-box .active {
+    background-color: #303F9F;
+    color: #FFFFFF;
+    border: 1px solid #303F9F;
+    border-radius: 10%;
+}
+
+.pagination-button {
+    display: inline-block;
+    padding: 1% 1.5%;
+    cursor: pointer;
+    font-weight: large;
+    margin-left: 0.25%;
+    margin-right: 0.25%;
+    border-radius: 0;
+}
+
+.pagination-button:hover {
+    background-color: #303F9F;
+    color: #FFFFFF;
+    border: 1px solid #303F9F;
+    border-radius: 10%;
+}
 </style>
