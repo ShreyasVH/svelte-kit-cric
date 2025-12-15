@@ -379,6 +379,9 @@ const handleFilterEvent = (event) => {
                 let index = tempFilters[key].indexOf(id);
                 tempFilters[key].splice(index, 1);
             }
+            if (tempFilters[key].length === 0) {
+                delete tempFilters[key];
+            }
             break;
         }
         case FILTER_TYPE.RADIO: {
@@ -408,6 +411,26 @@ const handleFilterEvent = (event) => {
             }
 
             break;
+        }
+    }
+
+    selectedFiltersTemp = tempFilters;
+}
+
+const handleClearFilter = key => {
+    let tempFilters = copyObject(selectedFiltersTemp);
+
+    delete tempFilters[key];
+
+    selectedFiltersTemp = tempFilters;
+};
+
+const handleClearAllFilters = () => {
+    let tempFilters = copyObject(selectedFiltersTemp);
+
+    for (const key of Object.keys(tempFilters)) {
+        if (key !== 'type') {
+            delete tempFilters[key];
         }
     }
 
@@ -473,31 +496,31 @@ $: {
 
         <div class="pagination-box">
             {#if page > 2}
-                <div class="pagination-button" on:click={() => goToPage(1)}>
+                <div role="button" class="pagination-button" on:click={() => goToPage(1)}>
                     {'<<'}
                 </div>
             {/if}
 
             {#if page > 1}
-                <div class="pagination-button" on:click={() => goToPage(page - 1)}>
+                <div role="button" class="pagination-button" on:click={() => goToPage(page - 1)}>
                     {'<'}
                 </div>
             {/if}
 
             {#each pageRange as i }
-                <div class={`${true ? "pagination-button" : ""} ${page === i ? "active" : ""}`} on:click={() => goToPage(i)}>
+                <div role="button" class={`${"pagination-button"} ${page === i ? "active" : ""}`} on:click={() => goToPage(i)}>
                     {i}
                 </div>
             {/each}
 
             {#if page < totalPages - 1}
-                <div class="pagination-button" on:click={() => goToPage(page + 1)}>
+                <div role="button" class="pagination-button" on:click={() => goToPage(page + 1)}>
                     {'>'}
                 </div>
             {/if}
 
             {#if page < totalPages - 2}
-                <div class="pagination-button" on:click={() => goToPage(totalPages)}>
+                <div role="button" class="pagination-button" on:click={() => goToPage(totalPages)}>
                     {'>>'}
                 </div>
             {/if}
@@ -511,6 +534,8 @@ $: {
             selected={selectedFiltersTemp}
             applyFilters={handleApplyFilters}
             handleEvent={handleFilterEvent}
+            clearFilter={handleClearFilter}
+            clearAllFilters={handleClearAllFilters}
         />
     {/if}
 </div>

@@ -11,8 +11,6 @@ import FormField from '@smui/form-field';
 import Checkbox from '@smui/checkbox';
 import Textfield from '@smui/textfield';
 
-
-
 export let open = false;
 export let onFilterOpen;
 export let onFilterClose;
@@ -20,10 +18,10 @@ export let options;
 export let selected;
 export let applyFilters;
 export let handleEvent;
+export let clearFilter;
+export let clearAllFilters;
 
 let selectedValues = {};
-
-
 
 const openFilters = (event) => onFilterOpen && onFilterOpen(event);
 
@@ -50,6 +48,10 @@ const handleApplyFilters = (event) => applyFilters && applyFilters();
 
 const handleFilterEvent = event => handleEvent && handleEvent(event);
 
+const handleClearFilter = key => clearFilter && clearFilter(key);
+
+const handleClearAllFilters = () => clearAllFilters && clearAllFilters();
+
 $: {
     for (const [key, filter] of Object.entries(options)) {
         const filterType = filter.type;
@@ -72,8 +74,11 @@ $: {
 }
 
 let activeFilters = [];
+let isAnyFilterSelected = false;
 $: {
     activeFilters = Object.keys(selected);
+
+    isAnyFilterSelected = Object.keys(selected).filter(k => k !== 'type').length > 0;
 }
 
 </script>
@@ -95,6 +100,12 @@ $: {
                 <Button style="display: inline; color: black; height: 48px;" on:click={handleApplyFilters}>
                     Apply
                 </Button>
+
+                {#if isAnyFilterSelected}
+                    <Button style="display: inline; color: black; height: 48px;" on:click={handleClearAllFilters}>
+                        Clear All
+                    </Button>
+                {/if}
             </TopAppBar>
 
             <div tabindex="0">
@@ -112,6 +123,17 @@ $: {
 
                             <Content>
                                 {#if isRadioFilter(key)}
+                                    {#if key !== 'type' && activeFilters.includes(key)}
+                                        <Button
+                                                on:click={(event) => handleClearFilter(key)}
+                                                color="primary"
+                                                class="clear-filter"
+                                        >
+                                            <span>
+                                                Clear
+                                            </span>
+                                        </Button>
+                                    {/if}
                                     {#each filter.values as option}
                                         <FormField>
                                             <Radio
@@ -126,20 +148,45 @@ $: {
                                 {/if}
 
                                 {#if isCheckboxFilter(key)}
+                                    {#if activeFilters.includes(key)}
+                                        <Button
+                                            on:click={(event) => handleClearFilter(key)}
+                                            color="primary"
+                                            class="clear-filter"
+                                        >
+                                            <span>
+                                                Clear
+                                            </span>
+                                        </Button>
+                                    {/if}
                                     {#each filter.values as option}
-                                        <FormField>
-                                            <Checkbox
-                                                value={option.id}
-                                                color="secondary"
-                                                checked={isCheckboxChecked(key, option.id)}
-                                                on:change={(event) => handleFilterEvent(Object.assign(event, { filterType: 'checkbox', optionId: option.id, filterKey: key }))}
-                                            />
-                                            {option.name}
-                                        </FormField>
+                                        {@const checkedNow = (selected?.[key] ?? []).includes(option.id)}
+                                        {#key `${key}-${option.id}-${checkedNow}`}
+                                            <FormField>
+                                                <Checkbox
+                                                    value={option.id}
+                                                    color="secondary"
+                                                    checked={isCheckboxChecked(key, option.id)}
+                                                    on:change={(event) => handleFilterEvent(Object.assign(event, { filterType: 'checkbox', optionId: option.id, filterKey: key }))}
+                                                />
+                                                {option.name}
+                                            </FormField>
+                                        {/key}
                                     {/each}
                                 {/if}
 
                                 {#if isRangeFilter(key)}
+                                    {#if activeFilters.includes(key)}
+                                        <Button
+                                                on:click={(event) => handleClearFilter(key)}
+                                                color="primary"
+                                                class="clear-filter"
+                                        >
+                                            <span>
+                                                Clear
+                                            </span>
+                                        </Button>
+                                    {/if}
                                     <Textfield
                                         variant="outlined"
                                         value={selectedValues[key].from}
@@ -196,5 +243,9 @@ $: {
     min-height: 0.625rem;
     background-color: #27AE60;
     margin-left: 0.625rem;
+}
+
+:global(.clear-filter) {
+    float: right;
 }
 </style>
