@@ -1,5 +1,4 @@
 <script>
-    import Button from '@smui/button';
     import Dialog from '@smui/dialog';
     import CircularProgress from '@smui/circular-progress';
     import { onMount } from 'svelte';
@@ -17,7 +16,7 @@
     });
 </script>
 
-<div>
+<div class="loader">
     <Dialog bind:open surface$style="background: transparent; box-shadow: none;" scrimClickAction="">
         <div tabindex="0">
         </div>
@@ -26,3 +25,10 @@
         </div>
     </Dialog>
 </div>
+
+
+<style>
+    :global(.loader .mdc-dialog.mdc-dialog--open) {
+        z-index: 100;
+    }
+</style>

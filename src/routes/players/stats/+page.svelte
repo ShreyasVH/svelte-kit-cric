@@ -1,15 +1,12 @@
 <script>
-import Fab, { Icon } from '@smui/fab';
-import Dialog, { Header } from '@smui/dialog';
-import TopAppBar from '@smui/top-app-bar';
-import IconButton from '@smui/icon-button';
-import Button from '@smui/button';
 import Filters from '../../../components/filters.svelte';
 import { FILTER_TYPE } from '../../../constants';
 import { onMount } from 'svelte';
 import { getStats } from '../../../endpoints/players';
+import { getAllTeams } from '../../../endpoints/teams';
+import { getAllStadiums } from '../../../endpoints/stadiums';
 import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
-import { showLoader, hideLoader } from '../../../utils';
+import { copyObject, showLoader, hideLoader } from '../../../utils';
 
 const getDefaultFilterOptions = () => ({
         type: {
@@ -82,7 +79,7 @@ let stats = [];
 let totalCount = 0;
 let selectedFilters = {
     type: 'batting'
-};
+}
 let selectedFiltersTemp = {
     type: 'batting'
 };
@@ -93,19 +90,16 @@ let sortMap = {
 let filterOptions = getDefaultFilterOptions();
 let loaded = false;
 const limit = 10;
+
 let totalPages = 0;
 let pageRange = [];
+
 let sortKey = 'runs';
 let sortOrder = 'desc';
 let sortSymbol = '\u0020\u2193';
 
 const columns = {
     batting: [
-         {
-             displayKey: 'Player ID',
-             key: 'id',
-             sortable: false
-         },
          {
               displayKey: 'Name',
               key: 'name',
@@ -159,11 +153,6 @@ const columns = {
     ],
     bowling: [
          {
-             displayKey: 'Player ID',
-             key: 'id',
-             sortable: false
-         },
-         {
               displayKey: 'Name',
               key: 'name',
               sortable: false
@@ -206,11 +195,6 @@ const columns = {
     ],
     fielding: [
          {
-             displayKey: 'Player ID',
-             key: 'id',
-             sortable: false
-         },
-         {
               displayKey: 'Name',
               key: 'name',
               sortable: false
@@ -240,6 +224,7 @@ const columns = {
 
 const handleFilterOpen = () => {
     isFilterOpen = true;
+    selectedFiltersTemp = selectedFilters
 };
 
 const handleFilterClose = () => {
@@ -321,22 +306,41 @@ const updateData = (selectedPage, selectedSortMap) => {
 onMount(() => {
     Promise.all([
         updateData(1, sortMap),
-        //getAllTeams(),
-        //getAllStadiums()
-    ]).then(([_]) => {
+        getAllTeams(),
+        getAllStadiums()
+    ]).then(([_, allTeams, allStadiums]) => {
+        const updatedFilterOptions = copyObject(filterOptions);
+        updatedFilterOptions['team'] = {
+            displayName: 'Team',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allTeams.map(team => ({
+                id: team.id,
+                name: team.name
+            }))
+        };
+        updatedFilterOptions['opposingTeam'] = {
+            displayName: 'Opposing Team',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allTeams.map(team => ({
+                id: team.id,
+                name: team.name
+            }))
+        };
+        updatedFilterOptions['stadium'] = {
+            displayName: 'Stadium',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allStadiums.map(stadium => ({
+                id: stadium.id,
+                name: stadium.name
+            }))
+        };
+
+        filterOptions = updatedFilterOptions;
     }).catch(error => console.log(error))
 });
 
 const goToPage = selectedPage => {
     updateData(selectedPage, sortMap);
-};
-
-const isSortActive = (key) => {
-  return sortMap.hasOwnProperty(key);
-};
-
-const getSortSymbol = (key) => {
-  return (sortMap[key] === 'asc') ? '\u0020\u2191' : '\u0020\u2193';
 };
 
 const handleSort = (key, type) => {
@@ -349,9 +353,69 @@ const handleSort = (key, type) => {
     }
 };
 
+const handleApplyFilters = () => {
+    updateData(1, sortMap);
+};
+
+const handleFilterEvent = (event) => {
+    let tempFilters = copyObject(selectedFiltersTemp);
+
+    switch (event.filterType) {
+        case FILTER_TYPE.CHECKBOX: {
+            const key = event.filterKey;
+            const id = event.optionId;
+            const target = event.target;
+            const checked = target.checked;
+
+            if (checked) {
+                if (tempFilters.hasOwnProperty(key)) {
+                    tempFilters[key].push(id);
+                } else {
+                    tempFilters[key] = [
+                        id
+                    ];
+                }
+            } else {
+                let index = tempFilters[key].indexOf(id);
+                tempFilters[key].splice(index, 1);
+            }
+            break;
+        }
+        case FILTER_TYPE.RADIO: {
+            const key = event.filterKey;
+            const id = event.optionId;
+
+            tempFilters[key] = id;
+            break;
+        }
+        case FILTER_TYPE.RANGE: {
+            const key = event.filterKey;
+            const type = event.rangeType;
+            const newValue = event.key;
+
+            if (Array.from({ length: 10 }, (_, i) => i.toString()).includes(newValue)) {
+                let value = '';
+                if (!tempFilters[key]) {
+                    tempFilters[key] = {};
+                } else {
+                    if (tempFilters[key].hasOwnProperty(type)) {
+                        value = tempFilters[key][type];
+                    }
+                }
+
+                value += newValue;
+                tempFilters[key][type] = value;
+            }
+
+            break;
+        }
+    }
+
+    selectedFiltersTemp = tempFilters;
+}
+
 $: totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : 0;
 
-// recompute whenever page or totalPages changes
 $: {
   const start = Math.max(1, page - 2);
   const end = Math.min(totalPages, page + 2);
@@ -369,102 +433,43 @@ $: {
     sortSymbol = ((sortOrder === 'asc') ? '\u0020\u2191' : '\u0020\u2193');
 }
 
+let statsType;
+$: {
+    statsType = selectedFilters.type;
+}
+
 </script>
 
 <div>
     {#if loaded}
-        {#if selectedFilters.type === 'batting'}
-            <DataTable style="width: 100%">
-                <Head>
-                    <Row>
-                        {#each columns.batting as column}
-                            <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, 'batting')}>
-                                {column.displayKey}
-                                {#if sortKey === column.key}
+        <DataTable style="width: 100%">
+            <Head>
+                <Row>
+                    {#each columns[statsType] as column}
+                        <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, statsType)}>
+                            {column.displayKey}
+                            {#if sortKey === column.key}
                                     <span>
                                         {sortSymbol}
                                     </span>
-                                {/if}
-                            </Cell>
-                        {/each}
-                    </Row>
-                </Head>
-
-                <Body>
-                    {#each stats as stat}
-                        <Row>
-                            {#each columns.batting as column}
-                                <Cell>
-                                    {stat[column.key]}
-                                </Cell>
-                            {/each}
-                        </Row>
+                            {/if}
+                        </Cell>
                     {/each}
-                </Body>
-            </DataTable>
-        {/if}
+                </Row>
+            </Head>
 
-        {#if selectedFilters.type === 'bowling'}
-            <DataTable style="width: 100%">
-                <Head>
-                    <Row>
-                        {#each columns.bowling as column}
-                            <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, 'bowling')}>
-                                {column.displayKey}
-                                {#if sortKey === column.key}
-                                    <span>
-                                        {sortSymbol}
-                                    </span>
-                                {/if}
-                            </Cell>
-                        {/each}
-                    </Row>
-                </Head>
-
-                <Body>
-                    {#each stats as stat}
-                        <Row>
-                            {#each columns.bowling as column}
-                                <Cell>
-                                    {stat[column.key]}
-                                </Cell>
-                            {/each}
-                        </Row>
+            <Body>
+            {#each stats as stat}
+                <Row>
+                    {#each columns[statsType] as column}
+                        <Cell>
+                            {stat[column.key]}
+                        </Cell>
                     {/each}
-                </Body>
-            </DataTable>
-        {/if}
-
-        {#if selectedFilters.type === 'fielding'}
-            <DataTable style="width: 100%">
-                <Head>
-                    <Row>
-                        {#each columns.fielding as column}
-                            <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, 'fielding')}>
-                                {column.displayKey}
-                                {#if sortKey === column.key}
-                                    <span>
-                                        {sortSymbol}
-                                    </span>
-                                {/if}
-                            </Cell>
-                        {/each}
-                    </Row>
-                </Head>
-
-                <Body>
-                    {#each stats as stat}
-                        <Row>
-                            {#each columns.fielding as column}
-                                <Cell>
-                                    {stat[column.key]}
-                                </Cell>
-                            {/each}
-                        </Row>
-                    {/each}
-                </Body>
-            </DataTable>
-        {/if}
+                </Row>
+            {/each}
+            </Body>
+        </DataTable>
 
         <div class="pagination-box">
             {#if page > 2}
@@ -502,6 +507,10 @@ $: {
             open={isFilterOpen}
             onFilterOpen={handleFilterOpen}
             onFilterClose={handleFilterClose}
+            options={filterOptions}
+            selected={selectedFiltersTemp}
+            applyFilters={handleApplyFilters}
+            handleEvent={handleFilterEvent}
         />
     {/if}
 </div>
