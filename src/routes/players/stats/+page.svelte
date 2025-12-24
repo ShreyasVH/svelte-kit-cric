@@ -7,67 +7,68 @@ import { getAllTeams } from '../../../endpoints/teams';
 import { getAllStadiums } from '../../../endpoints/stadiums';
 import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
 import { copyObject, showLoader, hideLoader } from '../../../utils';
+import PaginationBox from './paginationBox.svelte';
 
 const getDefaultFilterOptions = () => ({
-        type: {
-            displayName: 'Type',
-            type: FILTER_TYPE.RADIO,
-            values: [
-                {
-                    id: 'batting',
-                    name: 'Batting'
-                },
-                {
-                    id: 'bowling',
-                    name: 'Bowling'
-                },
-                {
-                    id: 'fielding',
-                    name: 'Fielding'
-                }
-            ]
-        },
-        gameType: {
-            displayName: 'Game Type',
-            type: FILTER_TYPE.CHECKBOX,
-            values: [
-                {
-                    id: '1',
-                    name: 'ODI'
-                },
-                {
-                    id: '2',
-                    name: 'TEST'
-                },
-                {
-                    id: '3',
-                    name: 'T20'
-                }
-            ]
-        },
-        teamType: {
-            displayName: 'Team Type',
-            type: FILTER_TYPE.CHECKBOX,
-            values: [
-                {
-                    id: '1',
-                    name: 'INTERNATIONAL'
-                },
-                {
-                    id: '2',
-                    name: 'DOMESTIC'
-                },
-                {
-                    id: '3',
-                    name: 'FRANCHISE'
-                }
-            ]
-        },
-        year: {
-            displayName: 'Year',
-            type: FILTER_TYPE.RANGE
-        }
-    });
+    type: {
+        displayName: 'Type',
+        type: FILTER_TYPE.RADIO,
+        values: [
+            {
+                id: 'batting',
+                name: 'Batting'
+            },
+            {
+                id: 'bowling',
+                name: 'Bowling'
+            },
+            {
+                id: 'fielding',
+                name: 'Fielding'
+            }
+        ]
+    },
+    gameType: {
+        displayName: 'Game Type',
+        type: FILTER_TYPE.CHECKBOX,
+        values: [
+            {
+                id: '1',
+                name: 'ODI'
+            },
+            {
+                id: '2',
+                name: 'TEST'
+            },
+            {
+                id: '3',
+                name: 'T20'
+            }
+        ]
+    },
+    teamType: {
+        displayName: 'Team Type',
+        type: FILTER_TYPE.CHECKBOX,
+        values: [
+            {
+                id: '1',
+                name: 'INTERNATIONAL'
+            },
+            {
+                id: '2',
+                name: 'DOMESTIC'
+            },
+            {
+                id: '3',
+                name: 'FRANCHISE'
+            }
+        ]
+    },
+    year: {
+        displayName: 'Year',
+        type: FILTER_TYPE.RANGE
+    }
+});
 
 let isFilterOpen = false;
 let stats = [];
@@ -86,65 +87,62 @@ let filterOptions = getDefaultFilterOptions();
 let loaded = false;
 const limit = 10;
 
-let totalPages = 0;
-let pageRange = [];
-
 let sortKey = 'runs';
 let sortOrder = 'desc';
 let sortSymbol = '\u0020\u2193';
 
 const columns = {
     batting: [
-         {
-              displayKey: 'Name',
-              key: 'name',
-              sortable: false
-         },
-         {
-              displayKey: 'Innings',
-              key: 'innings',
-              sortable: true
-         },
-         {
-             displayKey: 'Runs',
-             key: 'runs',
-             sortable: true
-         },
-         {
-              displayKey: 'Balls',
-              key: 'balls',
-              sortable: true
-         },
-         {
-              displayKey: 'Not Outs',
-              key: 'notOuts',
-              sortable: true
-         },
-         {
-              displayKey: 'Highest',
-              key: 'highest',
-              sortable: true
-         },
-         {
-              displayKey: '4s',
-              key: 'fours',
-              sortable: true
-         },
-         {
-              displayKey: '6s',
-              key: 'sixes',
-              sortable: true
-         },
-         {
-              displayKey: '50s',
-              key: 'fifties',
-              sortable: true
-         },
-         {
-              displayKey: '100s',
-              key: 'hundreds',
-              sortable: true
-         }
+     {
+          displayKey: 'Name',
+          key: 'name',
+          sortable: false
+     },
+     {
+          displayKey: 'Innings',
+          key: 'innings',
+          sortable: true
+     },
+     {
+         displayKey: 'Runs',
+         key: 'runs',
+         sortable: true
+     },
+     {
+          displayKey: 'Balls',
+          key: 'balls',
+          sortable: true
+     },
+     {
+          displayKey: 'Not Outs',
+          key: 'notOuts',
+          sortable: true
+     },
+     {
+          displayKey: 'Highest',
+          key: 'highest',
+          sortable: true
+     },
+     {
+          displayKey: '4s',
+          key: 'fours',
+          sortable: true
+     },
+     {
+          displayKey: '6s',
+          key: 'sixes',
+          sortable: true
+     },
+     {
+          displayKey: '50s',
+          key: 'fifties',
+          sortable: true
+     },
+     {
+          displayKey: '100s',
+          key: 'hundreds',
+          sortable: true
+     }
     ],
     bowling: [
          {
@@ -432,19 +430,6 @@ const handleClearAllFilters = () => {
     selectedFiltersTemp = tempFilters;
 }
 
-$: totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : 0;
-
-$: {
-  const start = Math.max(1, page - 2);
-  const end = Math.min(totalPages, page + 2);
-
-  const range = [];
-  for (let i = start; i <= end; i++) {
-    range.push(i);
-  }
-  pageRange = range;
-}
-
 $: {
     sortKey = Object.keys(sortMap)[0];
     sortOrder = sortMap[sortKey];
@@ -489,37 +474,12 @@ $: {
             </Body>
         </DataTable>
 
-        <div class="pagination-box">
-            {#if page > 2}
-                <div role="button" class="pagination-button" on:click={() => goToPage(1)}>
-                    {'<<'}
-                </div>
-            {/if}
-
-            {#if page > 1}
-                <div role="button" class="pagination-button" on:click={() => goToPage(page - 1)}>
-                    {'<'}
-                </div>
-            {/if}
-
-            {#each pageRange as i }
-                <div role="button" class={`${"pagination-button"} ${page === i ? "active" : ""}`} on:click={() => goToPage(i)}>
-                    {i}
-                </div>
-            {/each}
-
-            {#if page < totalPages - 1}
-                <div role="button" class="pagination-button" on:click={() => goToPage(page + 1)}>
-                    {'>'}
-                </div>
-            {/if}
-
-            {#if page < totalPages - 2}
-                <div role="button" class="pagination-button" on:click={() => goToPage(totalPages)}>
-                    {'>>'}
-                </div>
-            {/if}
-        </div>
+        <PaginationBox
+            page={page}
+            totalCount={totalCount}
+            limit={limit}
+            goToPage={goToPage}
+        />
 
         <Filters
             open={isFilterOpen}
@@ -538,34 +498,5 @@ $: {
 <style>
 :global(.sortable) {
     cursor: pointer;
-}
-
-.pagination-box {
-    text-align: center;
-    margin-top: 2%;
-}
-
-.pagination-box .active {
-    background-color: #303F9F;
-    color: #FFFFFF;
-    border: 1px solid #303F9F;
-    border-radius: 10%;
-}
-
-.pagination-button {
-    display: inline-block;
-    padding: 1% 1.5%;
-    cursor: pointer;
-    font-weight: large;
-    margin-left: 0.25%;
-    margin-right: 0.25%;
-    border-radius: 0;
-}
-
-.pagination-button:hover {
-    background-color: #303F9F;
-    color: #FFFFFF;
-    border: 1px solid #303F9F;
-    border-radius: 10%;
 }
 </style>
