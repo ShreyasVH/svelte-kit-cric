@@ -5,9 +5,9 @@ import { onMount } from 'svelte';
 import { getStats } from '../../../endpoints/players';
 import { getAllTeams } from '../../../endpoints/teams';
 import { getAllStadiums } from '../../../endpoints/stadiums';
-import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
 import { copyObject, showLoader, hideLoader } from '../../../utils';
 import PaginationBox from './paginationBox.svelte';
+import StatsTable from './statsTable.svelte';
 
 const getDefaultFilterOptions = () => ({
     type: {
@@ -70,7 +70,9 @@ const getDefaultFilterOptions = () => ({
     }
 });
 
+let loaded = false;
 let isFilterOpen = false;
+let filterOptions = getDefaultFilterOptions();
 let stats = [];
 let totalCount = 0;
 let selectedFilters = {
@@ -79,18 +81,12 @@ let selectedFilters = {
 let selectedFiltersTemp = {
     type: 'batting'
 };
-let page = 1;
 let sortMap = {
     'runs': 'desc'
 };
-let filterOptions = getDefaultFilterOptions();
-let loaded = false;
+let page = 1;
+
 const limit = 10;
-
-let sortKey = 'runs';
-let sortOrder = 'desc';
-let sortSymbol = '\u0020\u2193';
-
 const columns = {
     batting: [
      {
@@ -215,14 +211,41 @@ const columns = {
     ]
 };
 
-const handleFilterOpen = () => {
-    isFilterOpen = true;
-    selectedFiltersTemp = selectedFilters
-};
+onMount(() => {
+    Promise.all([
+        updateData(1, sortMap),
+        getAllTeams(),
+        getAllStadiums()
+    ]).then(([_, allTeams, allStadiums]) => {
+        const updatedFilterOptions = copyObject(filterOptions);
+        updatedFilterOptions['team'] = {
+            displayName: 'Team',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allTeams.map(team => ({
+                id: team.id,
+                name: team.name
+            }))
+        };
+        updatedFilterOptions['opposingTeam'] = {
+            displayName: 'Opposing Team',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allTeams.map(team => ({
+                id: team.id,
+                name: team.name
+            }))
+        };
+        updatedFilterOptions['stadium'] = {
+            displayName: 'Stadium',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allStadiums.map(stadium => ({
+                id: stadium.id,
+                name: stadium.name
+            }))
+        };
 
-const handleFilterClose = () => {
-    isFilterOpen = false;
-};
+        filterOptions = updatedFilterOptions;
+    }).catch(error => console.log(error))
+});
 
 const updateData = (selectedPage, selectedSortMap) => {
     showLoader();
@@ -296,54 +319,13 @@ const updateData = (selectedPage, selectedSortMap) => {
     });
 };
 
-onMount(() => {
-    Promise.all([
-        updateData(1, sortMap),
-        getAllTeams(),
-        getAllStadiums()
-    ]).then(([_, allTeams, allStadiums]) => {
-        const updatedFilterOptions = copyObject(filterOptions);
-        updatedFilterOptions['team'] = {
-            displayName: 'Team',
-            type: FILTER_TYPE.CHECKBOX,
-            values: allTeams.map(team => ({
-                id: team.id,
-                name: team.name
-            }))
-        };
-        updatedFilterOptions['opposingTeam'] = {
-            displayName: 'Opposing Team',
-            type: FILTER_TYPE.CHECKBOX,
-            values: allTeams.map(team => ({
-                id: team.id,
-                name: team.name
-            }))
-        };
-        updatedFilterOptions['stadium'] = {
-            displayName: 'Stadium',
-            type: FILTER_TYPE.CHECKBOX,
-            values: allStadiums.map(stadium => ({
-                id: stadium.id,
-                name: stadium.name
-            }))
-        };
-
-        filterOptions = updatedFilterOptions;
-    }).catch(error => console.log(error))
-});
-
-const goToPage = selectedPage => {
-    updateData(selectedPage, sortMap);
+const handleFilterOpen = () => {
+    isFilterOpen = true;
+    selectedFiltersTemp = selectedFilters
 };
 
-const handleSort = (key, type) => {
-    const columnConfig = columns[type].filter(column => key === column.key);
-    if (columnConfig.length === 1 && columnConfig[0].sortable) {
-        const order = ((sortMap.hasOwnProperty(key) && sortMap[key] === 'desc') ? 'asc' : 'desc');
-        updateData(1, {
-            [key]: order
-        });
-    }
+const handleFilterClose = () => {
+    isFilterOpen = false;
 };
 
 const handleApplyFilters = () => {
@@ -430,49 +412,31 @@ const handleClearAllFilters = () => {
     selectedFiltersTemp = tempFilters;
 }
 
-$: {
-    sortKey = Object.keys(sortMap)[0];
-    sortOrder = sortMap[sortKey];
-    sortSymbol = ((sortOrder === 'asc') ? '\u0020\u2191' : '\u0020\u2193');
-}
+const goToPage = selectedPage => {
+    updateData(selectedPage, sortMap);
+};
 
-let statsType;
-$: {
-    statsType = selectedFilters.type;
-}
+const handleSort = (key, type) => {
+    const columnConfig = columns[type].filter(column => key === column.key);
+    if (columnConfig.length === 1 && columnConfig[0].sortable) {
+        const order = ((sortMap.hasOwnProperty(key) && sortMap[key] === 'desc') ? 'asc' : 'desc');
+        updateData(1, {
+            [key]: order
+        });
+    }
+};
 
 </script>
 
 <div>
     {#if loaded}
-        <DataTable style="width: 100%">
-            <Head>
-                <Row>
-                    {#each columns[statsType] as column}
-                        <Cell head class={`${column.sortable ? "sortable" : ""}`} on:click={() => handleSort(column.key, statsType)}>
-                            {column.displayKey}
-                            {#if sortKey === column.key}
-                                    <span>
-                                        {sortSymbol}
-                                    </span>
-                            {/if}
-                        </Cell>
-                    {/each}
-                </Row>
-            </Head>
-
-            <Body>
-            {#each stats as stat}
-                <Row>
-                    {#each columns[statsType] as column}
-                        <Cell>
-                            {stat[column.key]}
-                        </Cell>
-                    {/each}
-                </Row>
-            {/each}
-            </Body>
-        </DataTable>
+        <StatsTable
+            columns={columns}
+            selectedFilters={selectedFilters}
+            stats={stats}
+            sortMap={sortMap}
+            handleSort={handleSort}
+        />
 
         <PaginationBox
             page={page}
@@ -494,9 +458,3 @@ $: {
         />
     {/if}
 </div>
-
-<style>
-:global(.sortable) {
-    cursor: pointer;
-}
-</style>
