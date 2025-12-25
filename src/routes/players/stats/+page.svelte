@@ -92,7 +92,8 @@ const columns = {
      {
           displayKey: 'Name',
           key: 'name',
-          sortable: false
+          sortable: false,
+          clickable: true
      },
      {
           displayKey: 'Innings',
@@ -144,7 +145,8 @@ const columns = {
          {
               displayKey: 'Name',
               key: 'name',
-              sortable: false
+              sortable: false,
+             clickable: true
          },
          {
               displayKey: 'Innings',
@@ -186,7 +188,8 @@ const columns = {
          {
               displayKey: 'Name',
               key: 'name',
-              sortable: false
+              sortable: false,
+             clickable: true
          },
          {
             displayKey: 'Fielder Catches',
@@ -426,6 +429,16 @@ const handleSort = (key, type) => {
     }
 };
 
+const handlePlayerClick = (playerId) => {
+    console.log(playerId);
+}
+
+const handleValueClick = (key, id) => {
+    if (key === 'name') {
+        handlePlayerClick(id);
+    }
+};
+
 </script>
 
 <div>
@@ -436,6 +449,7 @@ const handleSort = (key, type) => {
             stats={stats}
             sortMap={sortMap}
             handleSort={handleSort}
+            onValueClick={handleValueClick}
         />
 
         <PaginationBox

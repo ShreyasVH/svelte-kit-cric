@@ -6,6 +6,7 @@
     export let stats = [];
     export let sortMap = {};
     export let handleSort;
+    export let onValueClick;
 
     let sortKey = 'runs';
     let sortOrder = 'desc';
@@ -21,6 +22,8 @@
     $: {
         statsType = selectedFilters.type;
     }
+
+    const handleValueClick = (key, id) => onValueClick && onValueClick(key, id);
 
 </script>
 
@@ -48,7 +51,10 @@
         {#each stats as stat}
             <Row>
                 {#each columns[statsType] as column}
-                    <Cell>
+                    <Cell
+                        class={`${column.clickable ? "clickable" : ""}`}
+                        on:click={() => handleValueClick(column.key, stat.id)}
+                    >
                         {stat[column.key]}
                     </Cell>
                 {/each}
@@ -60,5 +66,10 @@
 <style>
     :global(.sortable) {
         cursor: pointer;
+    }
+
+    :global(.clickable) {
+        cursor: pointer;
+        color: #42a5f5;
     }
 </style>
