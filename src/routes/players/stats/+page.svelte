@@ -1,0 +1,446 @@
+<script>
+import Filters from '../../../components/filters.svelte';
+import { FILTER_TYPE } from '../../../constants';
+import { onMount } from 'svelte';
+import { getStats } from '../../../endpoints/players';
+import { getAllTeams } from '../../../endpoints/teams';
+import { getAllStadiums } from '../../../endpoints/stadiums';
+import { copyObject, showLoader, hideLoader } from '../../../utils';
+import PaginationBox from './paginationBox.svelte';
+import StatsTable from './statsTable.svelte';
+
+const getDefaultFilterOptions = () => ({
+    type: {
+        displayName: 'Type',
+        type: FILTER_TYPE.RADIO,
+        values: [
+            {
+                id: 'batting',
+                name: 'Batting'
+            },
+            {
+                id: 'bowling',
+                name: 'Bowling'
+            },
+            {
+                id: 'fielding',
+                name: 'Fielding'
+            }
+        ]
+    },
+    gameType: {
+        displayName: 'Game Type',
+        type: FILTER_TYPE.CHECKBOX,
+        values: [
+            {
+                id: '1',
+                name: 'ODI'
+            },
+            {
+                id: '2',
+                name: 'TEST'
+            },
+            {
+                id: '3',
+                name: 'T20'
+            }
+        ]
+    },
+    teamType: {
+        displayName: 'Team Type',
+        type: FILTER_TYPE.CHECKBOX,
+        values: [
+            {
+                id: '1',
+                name: 'INTERNATIONAL'
+            },
+            {
+                id: '2',
+                name: 'DOMESTIC'
+            },
+            {
+                id: '3',
+                name: 'FRANCHISE'
+            }
+        ]
+    },
+    year: {
+        displayName: 'Year',
+        type: FILTER_TYPE.RANGE
+    }
+});
+
+let loaded = false;
+let isFilterOpen = false;
+let filterOptions = getDefaultFilterOptions();
+let stats = [];
+let totalCount = 0;
+let selectedFilters = {
+    type: 'batting'
+}
+let selectedFiltersTemp = {
+    type: 'batting'
+};
+let sortMap = {
+    'runs': 'desc'
+};
+let page = 1;
+
+const limit = 10;
+const columns = {
+    batting: [
+     {
+          displayKey: 'Name',
+          key: 'name',
+          sortable: false,
+          clickable: true
+     },
+     {
+          displayKey: 'Innings',
+          key: 'innings',
+          sortable: true
+     },
+     {
+         displayKey: 'Runs',
+         key: 'runs',
+         sortable: true
+     },
+     {
+          displayKey: 'Balls',
+          key: 'balls',
+          sortable: true
+     },
+     {
+          displayKey: 'Not Outs',
+          key: 'notOuts',
+          sortable: true
+     },
+     {
+          displayKey: 'Highest',
+          key: 'highest',
+          sortable: true
+     },
+     {
+          displayKey: '4s',
+          key: 'fours',
+          sortable: true
+     },
+     {
+          displayKey: '6s',
+          key: 'sixes',
+          sortable: true
+     },
+     {
+          displayKey: '50s',
+          key: 'fifties',
+          sortable: true
+     },
+     {
+          displayKey: '100s',
+          key: 'hundreds',
+          sortable: true
+     }
+    ],
+    bowling: [
+         {
+              displayKey: 'Name',
+              key: 'name',
+              sortable: false,
+             clickable: true
+         },
+         {
+              displayKey: 'Innings',
+              key: 'innings',
+              sortable: true
+         },
+         {
+              displayKey: 'Wickets',
+              key: 'wickets',
+              sortable: true
+         },
+         {
+             displayKey: 'Runs',
+             key: 'runs',
+             sortable: true
+         },
+         {
+              displayKey: 'Balls',
+              key: 'balls',
+              sortable: true
+         },
+         {
+              displayKey: 'Maidens',
+              key: 'maidens',
+              sortable: true
+         },
+         {
+              displayKey: 'fifers',
+              key: 'fifers',
+              sortable: true
+         },
+         {
+              displayKey: 'Ten Wickets',
+              key: 'tenWickets',
+              sortable: true
+         }
+    ],
+    fielding: [
+         {
+              displayKey: 'Name',
+              key: 'name',
+              sortable: false,
+             clickable: true
+         },
+         {
+            displayKey: 'Fielder Catches',
+            key: 'fielderCatches',
+            sortable: true
+         },
+         {
+              displayKey: 'Keeper Catches',
+              key: 'keeperCatches',
+              sortable: true
+         },
+         {
+              displayKey: 'Stumpings',
+              key: 'stumpings',
+              sortable: true
+         },
+         {
+              displayKey: 'Run Outs',
+              key: 'runOuts',
+              sortable: true
+         }
+    ]
+};
+
+onMount(() => {
+    Promise.all([
+        updateData(1, sortMap),
+        getAllTeams(),
+        getAllStadiums()
+    ]).then(([_, allTeams, allStadiums]) => {
+        const updatedFilterOptions = copyObject(filterOptions);
+        updatedFilterOptions['team'] = {
+            displayName: 'Team',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allTeams.map(team => ({
+                id: team.id,
+                name: team.name
+            }))
+        };
+        updatedFilterOptions['opposingTeam'] = {
+            displayName: 'Opposing Team',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allTeams.map(team => ({
+                id: team.id,
+                name: team.name
+            }))
+        };
+        updatedFilterOptions['stadium'] = {
+            displayName: 'Stadium',
+            type: FILTER_TYPE.CHECKBOX,
+            values: allStadiums.map(stadium => ({
+                id: stadium.id,
+                name: stadium.name
+            }))
+        };
+
+        filterOptions = updatedFilterOptions;
+    }).catch(error => console.log(error))
+});
+
+const updateData = (selectedPage, selectedSortMap) => {
+    showLoader();
+    const payload = {
+        type: 'batting',
+        filters: {},
+        rangeFilters: {},
+        count: limit,
+        offset: (selectedPage - 1) * limit,
+        sortMap: selectedSortMap
+    };
+
+    const rangeFilterKeys = [
+        'year'
+    ];
+
+    for (const [key, values] of Object.entries(selectedFiltersTemp)) {
+        if (key === 'type') {
+            payload.type = values;
+            const allowedSortKeys = columns[payload.type].filter(c => c.sortable).map(c => c.key);
+            if (!allowedSortKeys.includes(Object.keys(sortMap)[0])) {
+                selectedSortMap = {
+                    [allowedSortKeys[1]]: 'desc'
+                };
+                payload.sortMap = selectedSortMap;
+            }
+        } else if (rangeFilterKeys.indexOf(key) !== -1) {
+            payload.rangeFilters[key] = values;
+        } else {
+            payload.filters[key] = values;
+        }
+    }
+
+    getStats(payload).then(statsResponse => {
+        stats = statsResponse.data.data.stats;
+        totalCount = statsResponse.data.data.count;
+        selectedFilters = selectedFiltersTemp;
+        handleFilterClose();
+        page = selectedPage;
+        sortMap = selectedSortMap;
+        loaded = true;
+        hideLoader();
+    });
+};
+
+const handleFilterOpen = () => {
+    isFilterOpen = true;
+    selectedFiltersTemp = selectedFilters
+};
+
+const handleFilterClose = () => {
+    isFilterOpen = false;
+};
+
+const handleApplyFilters = () => {
+    updateData(1, sortMap);
+};
+
+const handleFilterEvent = (event) => {
+    let tempFilters = copyObject(selectedFiltersTemp);
+
+    switch (event.filterType) {
+        case FILTER_TYPE.CHECKBOX: {
+            const key = event.filterKey;
+            const id = event.optionId;
+            const target = event.target;
+            const checked = target.checked;
+
+            if (checked) {
+                if (tempFilters.hasOwnProperty(key)) {
+                    tempFilters[key].push(id);
+                } else {
+                    tempFilters[key] = [
+                        id
+                    ];
+                }
+            } else {
+                let index = tempFilters[key].indexOf(id);
+                tempFilters[key].splice(index, 1);
+            }
+            if (tempFilters[key].length === 0) {
+                delete tempFilters[key];
+            }
+            break;
+        }
+        case FILTER_TYPE.RADIO: {
+            const key = event.filterKey;
+            const id = event.optionId;
+
+            tempFilters[key] = id;
+            break;
+        }
+        case FILTER_TYPE.RANGE: {
+            const key = event.filterKey;
+            const type = event.rangeType;
+            const newValue = event.key;
+
+            if (Array.from({ length: 10 }, (_, i) => i.toString()).includes(newValue)) {
+                let value = '';
+                if (!tempFilters[key]) {
+                    tempFilters[key] = {};
+                } else {
+                    if (tempFilters[key].hasOwnProperty(type)) {
+                        value = tempFilters[key][type];
+                    }
+                }
+
+                value += newValue;
+                tempFilters[key][type] = value;
+            }
+
+            break;
+        }
+    }
+
+    selectedFiltersTemp = tempFilters;
+}
+
+const handleClearFilter = key => {
+    let tempFilters = copyObject(selectedFiltersTemp);
+
+    delete tempFilters[key];
+
+    selectedFiltersTemp = tempFilters;
+};
+
+const handleClearAllFilters = () => {
+    let tempFilters = copyObject(selectedFiltersTemp);
+
+    for (const key of Object.keys(tempFilters)) {
+        if (key !== 'type') {
+            delete tempFilters[key];
+        }
+    }
+
+    selectedFiltersTemp = tempFilters;
+}
+
+const goToPage = selectedPage => {
+    updateData(selectedPage, sortMap);
+};
+
+const handleSort = (key, type) => {
+    const columnConfig = columns[type].filter(column => key === column.key);
+    if (columnConfig.length === 1 && columnConfig[0].sortable) {
+        const order = ((sortMap.hasOwnProperty(key) && sortMap[key] === 'desc') ? 'asc' : 'desc');
+        updateData(1, {
+            [key]: order
+        });
+    }
+};
+
+const handlePlayerClick = (playerId) => {
+    console.log(playerId);
+}
+
+const handleValueClick = (key, id) => {
+    if (key === 'name') {
+        handlePlayerClick(id);
+    }
+};
+
+</script>
+
+<div>
+    {#if loaded}
+        <StatsTable
+            columns={columns}
+            selectedFilters={selectedFilters}
+            stats={stats}
+            sortMap={sortMap}
+            handleSort={handleSort}
+            onValueClick={handleValueClick}
+        />
+
+        <PaginationBox
+            page={page}
+            totalCount={totalCount}
+            limit={limit}
+            goToPage={goToPage}
+        />
+
+        <Filters
+            open={isFilterOpen}
+            onFilterOpen={handleFilterOpen}
+            onFilterClose={handleFilterClose}
+            options={filterOptions}
+            selected={selectedFiltersTemp}
+            applyFilters={handleApplyFilters}
+            handleEvent={handleFilterEvent}
+            clearFilter={handleClearFilter}
+            clearAllFilters={handleClearAllFilters}
+        />
+    {/if}
+</div>
