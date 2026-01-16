@@ -25,7 +25,7 @@
     </h2>
 
     {#each tour.seriesList as series}
-        <Card style="margin-bottom: 1%; cursor:pointer;" on:click={() => handleSeriesClick(series.id)}>
+        <Card style="margin-bottom: 1%; cursor:pointer;" onclick={() => handleSeriesClick(series.id)}>
             <Content>
             <span>
                 {series.gameType.name}

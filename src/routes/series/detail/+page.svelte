@@ -82,7 +82,7 @@
     </h2>
 
     {#each series.matches as match, index}
-        <Card style="margin-bottom: 1%; cursor: pointer" on:click={() => handleMatchClick(match.id)}>
+        <Card style="margin-bottom: 1%; cursor: pointer" onclick={() => handleMatchClick(match.id)}>
             <Content>
                 <LayoutGrid style="padding: 0">
                     <Cell span={4}>
@@ -94,7 +94,7 @@
                             {renderWinner(match)}
                         </span>
 
-                        <Button style="background-color: #ef5350; color: white;" variant="raised" on:click={(event) => handleDeleteMatchClick(match.id, event)}>
+                        <Button style="background-color: #ef5350; color: white;" variant="raised" onclick={(event) => handleDeleteMatchClick(match.id, event)}>
                             DELETE
                         </Button>
                     </Cell>

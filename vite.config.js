@@ -7,7 +7,8 @@ export default defineConfig(({ mode }) => {
 		plugins: [sveltekit()],
 		server: {
 			host: process.env.VITE_HOST,
-			port: process.env.VITE_PORT
+			port: process.env.VITE_PORT,
+			allowedHosts: [process.env.VITE_ALLOWED_HOSTS]
 		}
 	}
 })
