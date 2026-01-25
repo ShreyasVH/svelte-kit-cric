@@ -34,7 +34,7 @@
                 <Cell
                     head
                     class={`${column.sortable ? "sortable" : ""}`}
-                    on:click={() => handleSort(column.key, statsType)}
+                    onclick={() => handleSort(column.key, statsType)}
                 >
                     {column.displayKey}
                     {#if sortKey === column.key}
@@ -53,7 +53,7 @@
                 {#each columns[statsType] as column}
                     <Cell
                         class={`${column.clickable ? "clickable" : ""}`}
-                        on:click={() => handleValueClick(column.key, stat.id)}
+                        onclick={() => handleValueClick(column.key, stat.id)}
                     >
                         {stat[column.key]}
                     </Cell>

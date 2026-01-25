@@ -251,12 +251,12 @@
                 &nbsp;
             </strong>
 
-            <Set chips={teams} let:chip style="display: inline;">
-                <Chip chip color="secondary" style="color: #ba68c8; border-style: solid; border-width: 1px; border-color: #ba68c8; background-color: #f3f6f9;">
-                    <Text>
-                        {chip.name}
-                    </Text>
+            <Set chips={teams} key={(chip) => chip.id} style="display: inline;">
+                {#snippet chip(chip)}
+                <Chip {chip} color="secondary" style="color: #ba68c8; border-style: solid; border-width: 1px; border-color: #ba68c8; background-color: #f3f6f9;">
+                    {chip.name}
                 </Chip>
+                {/snippet}
             </Set>
         </div>
 
@@ -309,12 +309,14 @@
                         </span>
 
                         <div>
-                            <Set chips={match.players[team.id]} let:chip>
-                                <Chip chip class={getClassNameForPlayer(team.id)}>
-                                    <span on:click={handlePlayerClick(chip.id)}>
-                                        {getPlayerLabel(chip)}
-                                    </span>
-                                </Chip>
+                            <Set chips={match.players[team.id]} key={(chip) => chip.id}>
+                                {#snippet chip(chip)}
+                                    <Chip {chip} class={getClassNameForPlayer(team.id)}>
+                                        <span on:click={handlePlayerClick(chip.id)}>
+                                            {getPlayerLabel(chip)}
+                                        </span>
+                                    </Chip>
+                                {/snippet}
                             </Set>
                             
                         </div>
@@ -329,12 +331,14 @@
                 &nbsp;
             </strong>
 
-            <Set chips={match.manOfTheMatchList} let:chip style="display: inline">
-                <Chip chip class="man-of-the-match">
-                    <span on:click={handlePlayerClick(chip.id)}>
-                        {chip.name}
-                    </span>
-                </Chip>
+            <Set chips={match.manOfTheMatchList} key={(chip) => chip.id} style="display: inline">
+                {#snippet chip(chip)}
+                    <Chip {chip} class="man-of-the-match">
+                        <span on:click={handlePlayerClick(chip.id)}>
+                            {chip.name}
+                        </span>
+                    </Chip>
+                {/snippet}
             </Set>
         </div>
 

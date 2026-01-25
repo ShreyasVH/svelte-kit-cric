@@ -51,7 +51,7 @@
         </h2>
 
         {#each tours as tour}
-            <Card style="margin-bottom: 1%; cursor: pointer" on:click={() => handleTourClick(tour.id)}>
+            <Card style="margin-bottom: 1%; cursor: pointer" onclick={() => handleTourClick(tour.id)}>
                 <Content>
                     <span>
                         {tour.name}
@@ -69,7 +69,7 @@
         <h2 style="text-align: center; margin-bottom: 1%">Years:</h2>
 
         {#each years as currentYear}
-            <Button style="margin-left: 1%; margin-right: 1%" variant={(currentYear === selectedYear) ? 'raised' : 'outlined'} color="secondary" on:click={() => handleYearClick(currentYear)}>
+            <Button style="margin-left: 1%; margin-right: 1%" variant={(currentYear === selectedYear) ? 'raised' : 'outlined'} color="secondary" onclick={() => handleYearClick(currentYear)}>
                 {currentYear}
             </Button>
         {/each}
