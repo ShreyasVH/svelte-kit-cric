@@ -28,14 +28,14 @@
 		"@smui/tab-bar": "^8.0.3",
 		"@smui/textfield": "^8.0.3",
 		"@smui/top-app-bar": "^8.0.3",
-		"@sveltejs/adapter-auto": "^7.0.0",
-		"@sveltejs/kit": "^2.49.5",
+		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/kit": "^2.52.0",
 		"smui-theme": "^8.0.3",
-		"svelte": "^5.46.4",
+		"svelte": "^5.51.2",
 		"vite": "^7.3.1"
 	},
 	"type": "module",
 	"dependencies": {
-		"axios": "^1.13.2"
+		"axios": "^1.13.5"
 	}
 }
