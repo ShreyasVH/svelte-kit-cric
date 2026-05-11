@@ -37,5 +37,10 @@
 	"type": "module",
 	"dependencies": {
 		"axios": "^1.13.6"
+	},
+	"overrides": {
+		"smui-theme": {
+			"yargs": "^18.0.0"
+		}
 	}
 }
