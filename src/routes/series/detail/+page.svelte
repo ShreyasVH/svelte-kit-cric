@@ -5,7 +5,7 @@
     import LayoutGrid, { Cell } from '@smui/layout-grid';
     import Card, { Content } from '@smui/card';
     import Button from '@smui/button';
-    import { formatDateTimeString, copyObject } from '../../../utils';
+    import { formatDateTimeString, copyObject, showLoader, hideLoader } from '../../../utils';
 
     export let data;
     let series = {};
@@ -24,6 +24,7 @@
     const handleDeleteMatchClick = async (matchId, event) => {
         event.preventDefault();
         event.stopPropagation();
+        showLoader();
         const deleteResponse = await removeMatch(matchId);
         if (deleteResponse.status === 200) {
             const updatedSeries = copyObject(series);
@@ -33,6 +34,7 @@
         } else {
             // TODO: add failure alert snackbar
         }
+        hideLoader();
     }
 
     const getWinMargin = (winMargin, winMarginType) => {
