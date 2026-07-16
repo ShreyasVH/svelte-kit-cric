@@ -29,14 +29,14 @@
 		"@smui/textfield": "^9.0.1",
 		"@smui/top-app-bar": "^9.0.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/kit": "^2.66.0",
+		"@sveltejs/kit": "^2.69.2",
 		"smui-theme": "^9.0.1",
-		"svelte": "^5.56.3",
-		"vite": "^8.0.16"
+		"svelte": "^5.56.4",
+		"vite": "^8.1.4"
 	},
 	"type": "module",
 	"dependencies": {
-		"axios": "^1.18.0"
+		"axios": "^1.18.1"
 	},
 	"overrides": {
 		"smui-theme": {
