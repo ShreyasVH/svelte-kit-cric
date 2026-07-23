@@ -402,7 +402,7 @@ const handleSort = (key, type) => {
 };
 
 const handlePlayerClick = (playerId) => {
-    console.log(playerId);
+    window.location.href = '/players/detail?id=' + playerId;
 }
 
 const handleValueClick = (key, id) => {
