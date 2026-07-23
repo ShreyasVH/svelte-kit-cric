@@ -228,7 +228,7 @@
     };
 
     const handlePlayerClick = (playerId) => {
-        console.log(playerId);
+        window.location.href = '/players/detail?id=' + playerId;
     };
 </script>
 
