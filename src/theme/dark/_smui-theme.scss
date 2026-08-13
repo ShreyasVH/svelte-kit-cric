@@ -13,7 +13,7 @@
 
 html,
 body {
-  background-color: #000;
+  background-color: #121316;
   color: theme.$on-surface;
 }
 
@@ -22,4 +22,22 @@ a {
 }
 a:visited {
   color: color.scale(#40b3ff, $lightness: -35%);
+}
+
+.search-dropdown {
+  background-color: rgb(18, 19, 22);
+  box-shadow: 0 4px 10px 0 rgb(0, 0, 0);
+  color: rgb(227, 226, 230)
+}
+
+.top-app-bar-container .search-select .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__notch, .search-select .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__leading, .search-select .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.top-app-bar-container .search-select .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.top-app-bar-container .search-select .mdc-text-field .mdc-text-field__input {
+  caret-color: rgba(255, 255, 255, 0.38);
 }

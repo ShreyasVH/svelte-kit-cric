@@ -64,3 +64,21 @@ a:visited {
   border: 1px solid #ef5350 !important;
   background-color: #F3F6F9 !important;
 }
+
+.search-dropdown {
+  background-color: rgb(250, 249, 253);
+  box-shadow: 0 4px 10px 0 rgb(0, 0, 0);
+  color: rgb(26, 27, 31);
+}
+
+.top-app-bar-container .search-select .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__notch, .search-select .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__leading, .search-select .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-color: rgba(0, 0, 0, 0.38)
+}
+
+.top-app-bar-container .search-select .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+  color: rgba(0, 0, 0, 0.38)
+}
+
+.top-app-bar-container .search-select .mdc-text-field .mdc-text-field__input {
+  caret-color: rgba(0, 0, 0, 0.38)
+}

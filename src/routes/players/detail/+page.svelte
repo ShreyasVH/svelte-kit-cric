@@ -1,5 +1,4 @@
 <script>
-    import { onMount } from 'svelte';
     import { getDetails as getPlayerDetails } from '../../../endpoints/players.js';
     import Chart from "chart.js/auto";
     import Card, {
@@ -8,14 +7,17 @@
     import LayoutGrid, { Cell } from '@smui/layout-grid';
 
 
-    export let data;
-    let player = {};
-    let loaded = false;
+    let { data } = $props();
+    let player = $state({});
+    let loaded = $state(false);
 
-    onMount(async () => {
-        const playerResponse = await getPlayerDetails(data.id);
-        player = playerResponse.data.data;
-        loaded = true;
+    $effect(async () => {
+        if (data?.id) {
+            loaded = false;
+            const playerResponse = await getPlayerDetails(data.id);
+            player = playerResponse.data.data;
+            loaded = true;
+        }
     });
 
     const getGameTypes = (gameTypes) => {
