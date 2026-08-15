@@ -2,6 +2,7 @@
     import TopAppBar, { Section, Row } from '@smui/top-app-bar';
     import IconButton from '@smui/icon-button';
     import SearchSelect from './searchSelect.svelte';
+    import ThemeSelector from './themeSelector.svelte';
     import {
         goto
     } from '$app/navigation';
@@ -26,6 +27,10 @@
 
                 <Section align="end" toolbar>
                     <SearchSelect onSelect={handlePlayerSelect} />
+
+                    &nbsp;&nbsp;
+
+                    <ThemeSelector />
                 </Section>
             </Row>
         </TopAppBar>
