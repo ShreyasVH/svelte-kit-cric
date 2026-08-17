@@ -9,6 +9,7 @@ import { getAllTags } from '../../../endpoints/tags';
 import { copyObject, showLoader, hideLoader } from '../../../utils';
 import PaginationBox from './paginationBox.svelte';
 import StatsTable from './statsTable.svelte';
+import { goto } from '$app/navigation';
 
 const getDefaultFilterOptions = () => ({
     type: {
@@ -422,7 +423,7 @@ const handleSort = (key, type) => {
 };
 
 const handlePlayerClick = (playerId) => {
-    window.location.href = '/players/detail?id=' + playerId;
+    goto(`/players/detail?id=${playerId}`);
 }
 
 const handleValueClick = (key, id) => {

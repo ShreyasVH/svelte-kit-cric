@@ -3,6 +3,7 @@
     import { getTour } from '../../../endpoints/tours';
     import Card, { Content } from '@smui/card';
     import { formatDateTimeString } from '../../../utils';
+    import { goto } from '$app/navigation';
 
     export let data;
     let tour = {};
@@ -15,7 +16,7 @@
     });
 
     const handleSeriesClick = async (seriesId) => {
-        window.location.href = '/series/detail?id=' + seriesId;
+        goto(`/series/detail?id=${seriesId}`);
     }
 </script>
 

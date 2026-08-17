@@ -11,9 +11,7 @@
         Scrim
     } from '@smui/drawer';
     import List, { Item, Text } from '@smui/list';
-    import {
-        goto
-    } from '$app/navigation';
+    import { goto } from '$app/navigation';
 
     const handlePlayerSelect = (event, item) => {
         const url = `/players/detail?id=${item.id}`;
