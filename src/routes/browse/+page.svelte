@@ -5,21 +5,27 @@
     import Button from '@smui/button';
     import Card, { Content } from '@smui/card';
     import { formatDateTimeString } from '../../utils';
+    import { goto } from '$app/navigation';
 
-    export let data;
-    export let selectedYear = data?.year;
-    let years = [];
-    let tours = [];
+    let { data } = $props();
+    console.log(data);
+    let selectedYear = $derived(
+        data?.year ?? new Date().getFullYear()
+    );
+    let years = $state([]);
+    let tours = $state([]);
+    let loaded = $state(false);
+    let page = $state(1);
 
     const pageSize = 25;
-    let currentPage = 1;
 
-    const loadTours = async () => {
+    const loadTours = async (year, page) => {
         let finalTours = [];
         let totalPages = 1;
+        let currentPage = page;
 
         do {
-            const toursResponse = await getToursForYear(selectedYear, currentPage, pageSize);
+            const toursResponse = await getToursForYear(year, currentPage, pageSize);
             finalTours = finalTours.concat(toursResponse.data.data.items);
             if (currentPage === 1) {
                 totalPages = Math.ceil(toursResponse.data.data.totalCount / pageSize);
@@ -31,16 +37,22 @@
     onMount(async () => {
         const yearsResponse = await getAllYears();
         years = yearsResponse.data.data;
-
-        await loadTours();
     });
 
+    $effect(async () => {
+        loaded = false;
+        await loadTours(selectedYear, 1);
+        loaded = true;
+    });
+
+
+
     const handleYearClick = async (year) => {
-        window.location.href = '/browse?year=' + year;
+        goto(`/browse?year=${year}`);
     }
 
     const handleTourClick = async (tourId) => {
-        window.location.href = '/tours/detail?id=' + tourId;
+        goto(`/tours/detail?id=${tourId}`);
     }
 </script>
 

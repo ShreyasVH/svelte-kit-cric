@@ -3,6 +3,7 @@
     import { getMatch } from '../../../endpoints/matches';
     import Chip, { Set, Text } from '@smui/chips';
     import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
+    import { goto } from '$app/navigation';
 
     export let data;
     let match = {};
@@ -224,11 +225,11 @@
     });
 
     const handleSeriesClick = (seriesId) => {
-        window.location.href = '/series/detail?id=' + seriesId;
+        goto(`/series/detail?id=${seriesId}`);
     };
 
     const handlePlayerClick = (playerId) => {
-        window.location.href = '/players/detail?id=' + playerId;
+        goto(`/players/detail?id=${playerId}`);
     };
 </script>
 

@@ -6,6 +6,7 @@
     import Card, { Content } from '@smui/card';
     import Button from '@smui/button';
     import { formatDateTimeString, copyObject, showLoader, hideLoader } from '../../../utils';
+    import { goto } from '$app/navigation';
 
     export let data;
     let series = {};
@@ -18,7 +19,7 @@
     });
 
     const handleMatchClick = async (matchId) => {
-        window.location.href = '/matches/detail?id=' + matchId;
+        goto(`/matches/detail?id=${matchId}`);
     }
 
     const handleDeleteMatchClick = async (matchId, event) => {
