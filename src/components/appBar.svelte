@@ -1,6 +1,15 @@
 <script>
-    import TopAppBar from '@smui/top-app-bar';
+    import TopAppBar, { Section, Row } from '@smui/top-app-bar';
     import IconButton from '@smui/icon-button';
+    import SearchSelect from './searchSelect.svelte';
+    import {
+        goto
+    } from '$app/navigation';
+
+    const handlePlayerSelect = (event, item) => {
+        const url = `/players/detail?id=${item.id}`;
+        goto(url);
+    };
 </script>
 
 <div class="flexy">
@@ -9,7 +18,16 @@
                 variant="static"
                 color="primary"
         >
-            <IconButton class="material-icons">menu</IconButton>
+            <Row>
+                <Section>
+                    <IconButton class="material-icons">menu</IconButton>
+                </Section>
+
+
+                <Section align="end" toolbar>
+                    <SearchSelect onSelect={handlePlayerSelect} />
+                </Section>
+            </Row>
         </TopAppBar>
     </div>
 </div>

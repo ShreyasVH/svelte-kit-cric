@@ -11,14 +11,14 @@
 		"smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
 	},
 	"devDependencies": {
+		"@smui-extra/accordion": "^9.0.2",
 		"@smui/button": "^9.0.2",
-		"@smui/circular-progress": "^9.0.2",
 		"@smui/card": "^9.0.2",
 		"@smui/checkbox": "^9.0.2",
 		"@smui/chips": "^9.0.3",
+		"@smui/circular-progress": "^9.0.2",
 		"@smui/data-table": "^9.0.2",
 		"@smui/dialog": "^9.0.2",
-		"@smui-extra/accordion": "^9.0.2",
 		"@smui/fab": "^9.0.2",
 		"@smui/form-field": "^9.0.2",
 		"@smui/icon-button": "^9.0.2",
