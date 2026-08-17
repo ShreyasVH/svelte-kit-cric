@@ -8,40 +8,83 @@
     import { goto } from '$app/navigation';
 
     let { data } = $props();
-    console.log(data);
-    let selectedYear = $derived(
-        data?.year ?? new Date().getFullYear()
-    );
+    let year = $state((new Date()).getFullYear());
     let years = $state([]);
     let tours = $state([]);
     let loaded = $state(false);
     let page = $state(1);
+    let totalPages = $state(1);
 
+    let loadMoreElement;
     const pageSize = 25;
 
-    const loadTours = async (year, page) => {
-        let finalTours = [];
-        let totalPages = 1;
-        let currentPage = page;
+    const loadTours = async (selectedYear, selectedPage) => {
+        const toursResponse = await getToursForYear(selectedYear, selectedPage, pageSize);
+        const toursData = toursResponse.data.data;
 
-        do {
-            const toursResponse = await getToursForYear(year, currentPage, pageSize);
-            finalTours = finalTours.concat(toursResponse.data.data.items);
-            if (currentPage === 1) {
-                totalPages = Math.ceil(toursResponse.data.data.totalCount / pageSize);
-            }
-        } while (currentPage++ < totalPages);
+        let finalTours = [];
+        if (page === 1) {
+            const totalCount = toursData.totalCount;
+            totalPages = Math.ceil(totalCount / pageSize);
+            finalTours = toursData.items;
+        } else {
+            finalTours = tours.concat(toursData.items);
+        }
+        page = selectedPage;
+
         tours = finalTours;
+    }
+
+    const handleScroll = () => {
+        if (tours.length > 0 && page < totalPages) {
+            page++;
+        }
     }
 
     onMount(async () => {
         const yearsResponse = await getAllYears();
         years = yearsResponse.data.data;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    handleScroll();
+                }
+            },
+            {
+                root: null,
+                rootMargin: '50px',
+                threshold: 0
+            }
+        );
+
+        if (loadMoreElement) {
+            observer.observe(loadMoreElement);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
+    });
+
+    $effect(() => {
+        const selectedYear = data?.year ?? new Date().getFullYear();
+
+        if (selectedYear !== year) {
+            year = selectedYear;
+            page = 1;
+            tours = [];
+        }
     });
 
     $effect(async () => {
+        const selectedYear = year;
+        const currentPage = page;
+
         loaded = false;
-        await loadTours(selectedYear, 1);
+
+        await loadTours(selectedYear, currentPage);
+
         loaded = true;
     });
 
@@ -59,7 +102,7 @@
 <LayoutGrid style="padding: 0">
     <Cell span={9}>
         <h2 style="text-align: center; margin-top: 0">
-            Tours for {selectedYear}:
+            Tours for {year}:
         </h2>
 
         {#each tours as tour}
@@ -75,13 +118,18 @@
                 </Content>
             </Card>
         {/each}
+
+        <div
+            bind:this={loadMoreElement}
+            style="height: 1px"
+        ></div>
     </Cell>
 
     <Cell span={3}>
         <h2 style="text-align: center; margin-bottom: 1%">Years:</h2>
 
         {#each years as currentYear}
-            <Button style="margin-left: 1%; margin-right: 1%" variant={(currentYear === selectedYear) ? 'raised' : 'outlined'} color="secondary" onclick={() => handleYearClick(currentYear)}>
+            <Button style="margin-left: 1%; margin-right: 1%" variant={(currentYear === year) ? 'raised' : 'outlined'} color="secondary" onclick={() => handleYearClick(currentYear)}>
                 {currentYear}
             </Button>
         {/each}
