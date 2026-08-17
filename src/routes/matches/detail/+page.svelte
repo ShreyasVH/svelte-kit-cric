@@ -240,7 +240,7 @@
                 &nbsp;
             </strong>
 
-            <span style="color: blue; cursor: pointer" on:click={handleSeriesClick(match.series.id)}>
+            <span class="link" style="cursor: pointer" on:click={handleSeriesClick(match.series.id)}>
                 {match.series.name + ' - ' + match.series.gameType.name}
             </span>
         </div>
@@ -253,7 +253,7 @@
 
             <Set chips={teams} key={(chip) => chip.id} style="display: inline;">
                 {#snippet chip(chip)}
-                <Chip {chip} color="secondary" style="color: #ba68c8; border-style: solid; border-width: 1px; border-color: #ba68c8; background-color: #f3f6f9;">
+                <Chip {chip} color="secondary" style="color: #ba68c8; border-style: solid; border-width: 1px; border-color: #ba68c8; background-color: transparent;">
                     {chip.name}
                 </Chip>
                 {/snippet}

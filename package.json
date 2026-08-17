@@ -24,6 +24,7 @@
 		"@smui/icon-button": "^9.0.2",
 		"@smui/layout-grid": "^9.0.2",
 		"@smui/radio": "^9.0.2",
+		"@smui/switch": "^9.0.2",
 		"@smui/tab": "^9.0.2",
 		"@smui/tab-bar": "^9.0.2",
 		"@smui/textfield": "^9.0.2",
