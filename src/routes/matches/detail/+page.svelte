@@ -521,6 +521,51 @@
                                             {/each}
                                             </Body>
                                         </DataTable>
+
+                                        <div class="table-wrapper">
+                                            <DataTable>
+                                                <Head>
+                                                    <Row>
+                                                        {#each ['Player 1', 'Partnership', 'Player 2'] as columnName}
+                                                            <Cell>
+                                                                {columnName}
+                                                            </Cell>
+                                                        {/each}
+                                                    </Row>
+                                                </Head>
+                                                <Body>
+                                                {#each match.partnerships.filter(p => p.innings === innings) as partnership}
+                                                    <Row>
+                                                        <Cell>
+                                                        <span class="link" on:click={handlePlayerClick(partnership.player1.player.id)}>
+                                                            {partnership.player1.player.name}
+                                                        </span>
+                                                            &nbsp;&nbsp;
+                                                            <span>
+                                                            {partnership.player1.runs}({partnership.player1.balls})
+                                                        </span>
+                                                        </Cell>
+
+                                                        <Cell>
+                                                        <span>
+                                                            {partnership.runs}{partnership.ended ? '' : '*'}({partnership.balls})
+                                                        </span>
+                                                        </Cell>
+
+                                                        <Cell>
+                                                        <span class="link" on:click={handlePlayerClick(partnership.player2.player.id)}>
+                                                            {partnership.player2.player.name}
+                                                        </span>
+                                                            &nbsp;&nbsp;
+                                                            <span>
+                                                            {partnership.player2.runs}({partnership.player2.balls})
+                                                        </span>
+                                                        </Cell>
+                                                    </Row>
+                                                {/each}
+                                                </Body>
+                                            </DataTable>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -531,3 +576,19 @@
         </div>
     </div>
 {/if}
+
+<style>
+    .table-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: 2%;
+    }
+
+    .table-wrapper :global(.mdc-data-table) {
+        width: 80%;
+    }
+
+    .table-wrapper :global(.mdc-data-table__header-cell), .table-wrapper :global(td) {
+        text-align: center;
+    }
+</style>
