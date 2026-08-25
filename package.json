@@ -6,7 +6,8 @@
 		"dev": "npm run prepare && vite dev",
 		"build": "npm run prepare && vite build",
 		"preview": "vite preview",
-		"prepare": "npm run smui-theme-light && npm run smui-theme-dark",
+		"prepare": "npm run smui-theme-common && npm run smui-theme-light && npm run smui-theme-dark",
+		"smui-theme-common": "smui-theme compile static/common.css -i src/theme/common",
 		"smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
 		"smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
 	},
